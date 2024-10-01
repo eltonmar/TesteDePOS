@@ -1,8 +1,114 @@
 import requests
+import pandas as pd
 
-url = "https://api.userede.com.br/redelabs/merchant-statement/v2/sales"
+def get_tokens():
+    url = "https://api.userede.com.br/redelabs/oauth/token"
+    body = {
+        "grant_type": "password",
+        "username": "elton.marinho@bagaggio.com.br",
+        "password": ":5@A9hPr9-Po"
+    }
 
-companyNumbers = [
+    headers = {
+        "Authorization": "Basic N2I3OWIyNjUtNjFjMi00YmJiLThlNmItZGE2NDNjMDliMThiOjI3bWJXMnpDeFE=",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    response = requests.post(url, data=body, headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        access_token = data.get("access_token", "")
+        refresh_token = data.get("refresh_token", "")
+        token_type = data.get("token_type", "")
+        expires_in = data.get("expires_in", "")
+        scope = data.get("scope", "")
+
+        return access_token, refresh_token, token_type, expires_in, scope
+    else:
+        print("Falha na obtenção do token. Status code:", response.status_code)
+        return None, None, None, None, None
+
+
+def fetch_sales_transactions(access_token, start_date, end_date, company_numbers):
+    url = "https://api.userede.com.br/redelabs/merchant-statement/v2/sales"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    all_transactions = []
+
+    for company_number in company_numbers:
+        params = {
+            "startDate": start_date,
+            "endDate": end_date,
+            "parentCompanyNumber": company_number,
+            "subsidiaries": company_number,
+            "size": 100,
+            "pageKey": None
+        }
+
+        while True:
+            response = requests.get(url, params=params, headers=headers)
+
+            if response.status_code == 200:
+                data = response.json()
+
+                if 'content' in data and 'transactions' in data['content']:
+                    transactions = data['content']['transactions']
+                    all_transactions.extend(transactions)
+
+                    if 'cursor' in data and data['cursor'].get('hasNextKey', False):
+                        next_key = data['cursor'].get('nextKey', None)
+                        params['pageKey'] = next_key
+                    else:
+                        break
+                else:
+                    break
+            else:
+                print(f"Erro na requisição para {company_number}: {response.status_code}")
+                break
+
+    return all_transactions
+
+
+def process_transactions(transactions):
+    processed_transactions = []
+
+    for transaction in transactions:
+        filtered_data = {
+            'movementDate': transaction.get('movementDate', 'N/A'),
+            'authorizationCode': transaction.get('authorizationCode', 'N/A'),
+            'captureType': transaction.get('captureType', 'N/A'),
+            'netAmount': transaction.get('netAmount', 0),
+            'amount': transaction.get('amount', 0),
+            'status': transaction.get('status', 'N/A'),
+            'tid': transaction.get('tid', 0),
+            'saleDate': transaction.get('saleDate', 'N/A'),
+            'saleHour': transaction.get('saleHour', 'N/A'),
+            'nsu': transaction.get('nsu', 'N/A'),
+            'device': transaction.get('device', 'N/A'),
+            'deviceType': transaction.get('deviceType', 'N/A'),
+            'mdrFee': transaction.get('mdrFee', 0),
+            'mdrAmount': transaction.get('mdrAmount', 0),
+            'cardNumber': transaction.get('cardNumber', 'N/A'),
+            'tokenNumber': transaction.get('tokenNumber', 'N/A'),
+            'companyNumber': transaction.get('merchant', {}).get('companyNumber', 'N/A'),
+            'documentName': transaction.get('merchant', {}).get('documentName', 'N/A'),
+            'modalityType': transaction.get('modality', {}).get('type', 'N/A')
+        }
+        processed_transactions.append(filtered_data)
+
+    return processed_transactions
+
+
+# Exemplo de execução
+access_token, refresh_token, token_type, expires_in, scope = get_tokens()
+
+if access_token:
+    companyNumbers = [
             3016412, 84232633, 84232668, 32143460, 3111628, 73938807, 32144024, 32144261,
             95515208, 75539098, 87805405, 73986313, 95400206, 32144890, 85788600, 32144970,
             32145128, 32145268, 92320384, 32145403, 32145454, 32145497, 32145586, 32145667,
@@ -36,86 +142,24 @@ companyNumbers = [
             96216964, 96276134, 96276231, 96286130, 96286164, 96286202, 96286237, 96299843,
             96296941, 96310073, 96313510, 96299754, 96301058, 96439629, 96533641, 96533951,
             96292504, 96547863, 96533161, 96485183, 96533366, 96402725, 96402440, 96400420,
-            96618710, 96570059, 96620382, 96570857, 96570059, 96733675, 96781009, 96781122,
+            96618710, 96570059, 96620382, 96570857, 96733675, 96781009, 96781122,
             96781742, 96781955, 96822074, 96878169, 96877944, 96943769
-
         ]
 
-startdate = "2024-09-30"
-enddate = "2024-09-30"
+    start_date = "2024-09-30"
+    end_date = "2024-09-30"
 
-access_token = "eyJraWQiOiI4ZDk0OTg1Ny00MTVmLTRiODEtYjZmNC05OTZhNDY0ODUzMDciLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL3JsNy1wcmQtYXBpLnVzZXJlZGVjbG91ZC5jb20uYnIvb2F1dGgvdjIiLCJpYXQiOjE3Mjc3OTk3MjQsIm5iZiI6MTcyNzc5OTcyNCwiYXVkIjoiaHR0cHM6Ly9ybDctcHJkLWFwaS51c2VyZWRlY2xvdWQuY29tLmJyL29hdXRoL3YyIiwiZXhwIjoxNzI3ODAxMTY0LCJhcHAiOiIzMzA1MDI0NjAwMDEyN18xMjczN18wMSIsInZlciI6IjEuMCIsIm9yZyI6ImM4ZmIxYTZhLTA4ZTMtNDVlMC05NWExLTg3NDViYmI3ZWI4YyIsInNjb3BlIjoibWVyY2hhbnQtc3RhdGVtZW50IGZlYXR1cmVfbWVyY2hhbnRfc3RhdGVtZW50IiwiY2VsbCI6IjAiLCJjaG5sIjoiMCIsImNpZCI6IjdiNzliMjY1LTYxYzItNGJiYi04ZTZiLWRhNjQzYzA5YjE4YiIsInVzaWQiOiIxMjczNzQ0Zi0xYWYyLTQyZTYtODEyMi00MjIyZDBlMjlkZDEifQ.YA-LDIMMa6Cd0VVd3iTGgBdSlQB68qyDnEZAiuV4zaOGay6l3QZ0X4mIjvIG7ZsL9CMS3Qc2ifhRvdegjXHKfddwaoIyTP2ilr7adMPVthS-oDJxQxEQy7VB91Z5GxhRpFYaxf-AZAfMmEupXRC04IyuTbyyh5RYPR9vRufO5dnszyVpbuvlKXmNd6zWfaR9HpGZi_5LGv4StHrtQHapFZseFWk0w3wTRjmRQCO9Z2HCVDsfc5FmFhGhqPqvOhz9dqg5uxQb4LWUkmFcHnfuMkDMt0rQLdQDXM_Z7skFuMyjkZ3mXLNWM9Jj7F0lLeC0njMbEH21KPa_J3DqKY98LA"
+    transactions = fetch_sales_transactions(access_token, start_date, end_date, companyNumbers)
 
+    if transactions:
+        processed_transactions = process_transactions(transactions)
 
-headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"Bearer {access_token}"
-}
+        # Criação de DataFrame para visualizar os dados em colunas
+        df = pd.DataFrame(processed_transactions)
 
-all_transactions = []
-
-for companyNumber in companyNumbers:
-    params = {
-        "startDate": startdate,
-        "endDate": enddate,
-        "parentCompanyNumber": companyNumber,
-        "subsidiaries": companyNumber,
-        "size": 100,
-        "pageKey": None
-    }
-
-    while True:
-        response = requests.get(url, params=params, headers=headers)
-
-        if response.status_code == 200:
-            dados = response.json()
-
-            if 'content' in dados and 'transactions' in dados['content']:
-                transactions = dados['content']['transactions']
-                all_transactions.extend(transactions)
-
-                if 'cursor' in dados and dados['cursor'].get('hasNextKey', False):
-                    next_key = dados['cursor'].get('nextKey', None)
-                    if next_key:
-                        params['pageKey'] = next_key
-                    else:
-                        break
-                else:
-                    break
-            else:
-                break
-        else:
-            print(f"Erro na requisição para {companyNumber}: {response.status_code}")
-            break
-
-
-for transaction in all_transactions:
-    filtered_data = {
-        'movementDate': transaction.get('movementDate', 'N/A'),
-        'authorizationCode': transaction.get('authorizationCode', 'N/A'),
-        'captureType': transaction.get('captureType', 'N/A'),
-        'netAmount': transaction.get('netAmount', 0),
-        'amount': transaction.get('amount', 0),
-        'status': transaction.get('status', 'N/A'),
-        'tid': transaction.get('tid', 0),
-        'saleDate': transaction.get('saleDate', 'N/A'),
-        'saleHour': transaction.get('saleHour', 'N/A'),
-        'nsu': transaction.get('nsu', 'N/A'),
-        'device': transaction.get('device', 'N/A'),
-        'deviceType': transaction.get('deviceType', 'N/A'),
-        'mdrFee': transaction.get('mdrFee', 0),
-        'mdrAmount': transaction.get('mdrAmount', 0),
-        'netAmount': transaction.get('netAmount', 0),
-        'cardNumber': transaction.get('cardNumber', 'N/A'),
-        'tokenNumber': transaction.get('tokenNumber', 'N/A'),
-        'merchant': {
-            'companyNumber': transaction.get('merchant', {}).get('companyNumber', 'N/A'),
-            'documentNumber': transaction.get('merchant', {}).get('documentNumber', 'N/A'),
-            'documentName': transaction.get('merchant', {}).get('documentName', 'N/A')
-        },
-        'modality': {
-            'type': transaction.get('modality', {}).get('type', 'N/A'),
-        }
-    }
-
-    print(filtered_data)
+        # Exibindo as transações no terminal
+        for index, row in df.iterrows():
+            print(f"\n--- Transação {index + 1} ---")
+            print(row.to_string())  # Exibe os dados formatados
+    else:
+        print("Nenhuma transação encontrada.")
