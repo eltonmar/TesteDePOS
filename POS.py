@@ -2,14 +2,13 @@ import requests
 
 url = "https://api.userede.com.br/redelabs/merchant-statement/v2/sales"
 
-companyNumbers = [84417072]
+companyNumbers = [95587632, 75538695]
 subsidiaries = companyNumbers
 
 startdate = "2024-09-10"
 enddate = "2024-09-10"
 
-access_token = "eyJraWQiOiI4ZDk0OTg1Ny00MTVmLTRiODEtYjZmNC05OTZhNDY0ODUzMDciLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL3JsNy1wcmQtYXBpLnVzZXJlZGVjbG91ZC5jb20uYnIvb2F1dGgvdjIiLCJpYXQiOjE3Mjc0NjkxMjMsIm5iZiI6MTcyNzQ2OTEyMywiYXVkIjoiaHR0cHM6Ly9ybDctcHJkLWFwaS51c2VyZWRlY2xvdWQuY29tLmJyL29hdXRoL3YyIiwiZXhwIjoxNzI3NDcwNTYzLCJhcHAiOiIzMzA1MDI0NjAwMDEyN18xMjczN18wMSIsInZlciI6IjEuMCIsIm9yZyI6ImM4ZmIxYTZhLTA4ZTMtNDVlMC05NWExLTg3NDViYmI3ZWI4YyIsInNjb3BlIjoibWVyY2hhbnQtc3RhdGVtZW50IGZlYXR1cmVfbWVyY2hhbnRfc3RhdGVtZW50IiwiY2VsbCI6IjAiLCJjaG5sIjoiMCIsImNpZCI6IjdiNzliMjY1LTYxYzItNGJiYi04ZTZiLWRhNjQzYzA5YjE4YiIsInVzaWQiOiIxMjczNzQ0Zi0xYWYyLTQyZTYtODEyMi00MjIyZDBlMjlkZDEifQ.gNqNWVxEEFxUD_qphLK-1E1PJoDfORdruShJ2J7yIWNYTxV6b9AwQXQ8s6lSmFDKeSnG858srSF0_N2x9cqfqqkizqOnnmL7mT0tuEdCzvXE9MmKHLxrxPlDqNiaXUxNSxzTFikVoKknSFOG0zGrzCw5RDxKapuMgeEhETnDQmbybvAnWBOVZancxslNnmvifEtb-KdI2hzm24dWLNGIclBLTQgLqvqA7Y_vnp_3LZJ7OBAWwsEkQK-1FuwetONVFi7fyNDkLmZ1l5UxXbWStDPX793YjgNYkbIwDq6tlE4g1rdS99hzSOXEaJZ5-0LCf-yHrzAxdIxpJ52NoBTu4w"
-
+access_token = "eyJraWQiOiI4ZDk0OTg1Ny00MTVmLTRiODEtYjZmNC05OTZhNDY0ODUzMDciLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL3JsNy1wcmQtYXBpLnVzZXJlZGVjbG91ZC5jb20uYnIvb2F1dGgvdjIiLCJpYXQiOjE3Mjc3Mjk4MDYsIm5iZiI6MTcyNzcyOTgwNiwiYXVkIjoiaHR0cHM6Ly9ybDctcHJkLWFwaS51c2VyZWRlY2xvdWQuY29tLmJyL29hdXRoL3YyIiwiZXhwIjoxNzI3NzMxMjQ2LCJhcHAiOiIzMzA1MDI0NjAwMDEyN18xMjczN18wMSIsInZlciI6IjEuMCIsIm9yZyI6ImM4ZmIxYTZhLTA4ZTMtNDVlMC05NWExLTg3NDViYmI3ZWI4YyIsInNjb3BlIjoibWVyY2hhbnQtc3RhdGVtZW50IGZlYXR1cmVfbWVyY2hhbnRfc3RhdGVtZW50IiwiY2VsbCI6IjAiLCJjaG5sIjoiMCIsImNpZCI6IjdiNzliMjY1LTYxYzItNGJiYi04ZTZiLWRhNjQzYzA5YjE4YiIsInVzaWQiOiIxMjczNzQ0Zi0xYWYyLTQyZTYtODEyMi00MjIyZDBlMjlkZDEifQ.inrdCgDp737fqpKZb0y7rWIAOmIZfftMeDeJtq7dCtd88r7jJRpNlw-g5-u8alm8OOmyigR8og-OXn7-RZmhmabFSutomFE0VOeiXdvfxY3m1EL40glOUM6kDzpkgzu511ZZGBm7xH4DIQ22q1WmqOJ9K5XajC_m-imwhR6byNtzEZo7JM2LlUcdmAQ8vjrkvUxdLMOIRJJqAtvwI1qqdDgko8ctwf14GHBNwzNTLalwMNJSmJ_dkVDW-O_pbKcaTzk4Y8nQqY8zwEqPSq7UMtNEzim0B41f3cvKkbgIm5v6as3CalHpWRSFtg429hXXy1IF9huYwwoPgyqLd1dENA"
 headers = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {access_token}"
@@ -26,7 +25,6 @@ params = {
 all_transactions = []
 nextKey = ""
 
-
 while True:
 
     if nextKey:
@@ -38,7 +36,7 @@ while True:
 
     if response.status_code == 200:
         dados = response.json()
-        print(dados)
+        # print(dados)
         if 'content' in dados and 'transactions' in dados['content']:
             transactions = dados['content']['transactions']
             all_transactions.extend(transactions)
@@ -58,7 +56,6 @@ while True:
     else:
         print(f"Erro na requisição para {companyNumbers}: {response.status_code}")
         break
-
 
 for transaction in all_transactions:
     filtered_data = {
@@ -83,12 +80,12 @@ for transaction in all_transactions:
             'companyNumber': transaction.get('merchant', {}).get('companyNumber', 'N/A'),
             'documentNumber': transaction.get('merchant', {}).get('documentNumber', 'N/A'),
             'documentName': transaction.get('merchant', {}).get('documentName', 'N/A')
-       },
+        },
         'modality': {
-           'type': transaction.get('modality', {}).get('type', 'N/A'),
+            'type': transaction.get('modality', {}).get('type', 'N/A'),
         }
     }
 
+    print(filtered_data)
 
-print(f"Total de transações: {len(all_transactions)}")
-
+# print(f"Total de transações: {len(all_transactions)}")
