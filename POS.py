@@ -55,12 +55,11 @@ headers = {
 all_transactions = []
 
 for companyNumber in companyNumbers:
-    # Atualize os parâmetros com o companyNumber atual
     params = {
         "startDate": startdate,
         "endDate": enddate,
-        "parentCompanyNumber": companyNumber,  # Use apenas um companyNumber por vez
-        "subsidiaries": companyNumber,         # Use apenas um companyNumber por vez
+        "parentCompanyNumber": companyNumber,
+        "subsidiaries": companyNumber,
         "size": 100,
         "pageKey": None
     }
@@ -75,7 +74,6 @@ for companyNumber in companyNumbers:
                 transactions = dados['content']['transactions']
                 all_transactions.extend(transactions)
 
-                # Verifica se existe o cursor com hasNextKey igual a True
                 if 'cursor' in dados and dados['cursor'].get('hasNextKey', False):
                     next_key = dados['cursor'].get('nextKey', None)
                     if next_key:
