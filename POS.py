@@ -154,12 +154,10 @@ if access_token:
     if transactions:
         processed_transactions = process_transactions(transactions)
 
-        # Criação de DataFrame para visualizar os dados em colunas
         df = pd.DataFrame(processed_transactions)
 
-        # Exibindo as transações no terminal
         for index, row in df.iterrows():
             print(f"\n--- Transação {index + 1} ---")
-            print(row.to_string())  # Exibe os dados formatados
+            print(row.to_string())
     else:
         print("Nenhuma transação encontrada.")
