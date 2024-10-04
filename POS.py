@@ -161,3 +161,10 @@ if access_token:
             print(row.to_string())
     else:
         print("Nenhuma transação encontrada.")
+
+
+
+
+
+
+
