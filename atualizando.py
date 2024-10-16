@@ -192,8 +192,8 @@ companyNumbers = [
 
 
 if access_token:
-    start_date = "2024-09-01"
-    end_date = "2024-09-30"
+    start_date = "2024-10-15"
+    end_date = "2024-10-15"
 
     workbook = openpyxl.Workbook()
     sheet = workbook.active
